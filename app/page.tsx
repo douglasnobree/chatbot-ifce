@@ -36,8 +36,8 @@ interface SessaoAtual {
 
 type ConnectionStatus = "connected" | "disconnected" | "error"
 
-const API_BASE_URL = "http://localhost:3000"
-const SOCKET_URL = "http://localhost:3000/atendimento"
+const API_BASE_URL = "http://localhost:3055"
+const SOCKET_URL = "http://localhost:3055/atendimento"
 
 interface User {
   id: string
@@ -54,6 +54,7 @@ export default function PainelAtendente() {
   const [atendimentosAbertos, setAtendimentosAbertos] = useState<Atendimento[]>([])
   const [sessaoAtual, setSessaoAtual] = useState<SessaoAtual | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  console.log("messages", messages)
   const [messageInput, setMessageInput] = useState("")
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected")
   const [error, setError] = useState<string | null>(null)
@@ -188,9 +189,11 @@ export default function PainelAtendente() {
     })
 
     newSocket.on("novaMensagem", (data: Message & { sessao_id: string }) => {
-      if (sessaoAtual && data.sessao_id === sessaoAtual.sessao_id) {
-        setMessages((prev) => [...prev, data])
-      }
+      console.log("Nova mensagem recebida:", data)
+        if (data.sender === "usuario") {
+          setMessages((prev) => [...prev, data])
+        }
+      
     })
 
     newSocket.on("atendenteEntrou", (data: { nome: string; setor: string }) => {
@@ -248,6 +251,7 @@ export default function PainelAtendente() {
   const enviarMensagem = () => {
     const mensagem = messageInput.trim()
     if (!mensagem || !sessaoAtual || !socket) return
+    console.log("Enviando mensagem:", sessaoAtual.sessao_id)
 
     socket.emit("enviarMensagem", {
       sessao_id: sessaoAtual.sessao_id,
